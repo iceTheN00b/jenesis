@@ -3,7 +3,7 @@ from langchain.embeddings import HuggingFaceEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores import Chroma
 from langchain.agents import Tool
-from toolkit.testToolkit import *
+from architecture.testToolkit import *
 
 class kandiiMind: #the mind of the agent is nothing more than a collection of different chains, aimed at simulating cognition
     def __init__(self, soul, render):

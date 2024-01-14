@@ -3,7 +3,7 @@ from langchain.agents import initialize_agent, AgentType
 from langchain.chat_models import ChatOpenAI
 from langchain.globals import set_llm_cache
 from langchain.cache import SQLiteCache
-from toolkit.testToolkit import TASKS
+from architecture.testToolkit import TASKS
 from agents.kandii.kandiiRender import kandiiRender
 from agents.kandii.kandiiMind import kandiiMind
 

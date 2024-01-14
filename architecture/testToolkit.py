@@ -3,7 +3,7 @@ from enum import Enum
 from langchain.tools import GoogleSearchResults
 from langchain.utilities import GoogleScholarAPIWrapper
 from langchain_community.tools.google_scholar import GoogleScholarQueryRun
-from toolkit.Tasks import TASKS
+from architecture.Tasks import TASKS
 
 class testTools:
     def __init__(self, render):

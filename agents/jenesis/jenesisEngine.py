@@ -1,6 +1,8 @@
 from langchain.globals import set_llm_cache
 from langchain_community.cache import SQLiteCache
 from langchain_community.chat_models import ChatOpenAI
+from langchain_core.prompts import PromptTemplate
+
 from agents.jenesis.jenesisRender import jenesisRender
 from agents.jenesis.jenesisMind import jenesisMind
 from langchain.agents import initialize_agent, AgentType
@@ -36,4 +38,11 @@ class jenesisEngine:
         )
 
     def enginate(self):
-        self.agent.run("write a blogpost")
+
+        engine_subtask = """
+        0. make use of the prior_module
+        1. make use of the executor_module
+        2. make use of the publisher_module
+        """
+
+        self.agent.invoke({"input":(PromptTemplate.from_template(engine_subtask))})
