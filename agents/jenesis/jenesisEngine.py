@@ -45,4 +45,4 @@ class jenesisEngine:
         2. make use of the publisher_module
         """
 
-        self.agent.invoke({"input":(PromptTemplate.from_template(engine_subtask))})
+        self.agent.invoke({"input":engine_subtask})

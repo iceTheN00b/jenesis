@@ -39,12 +39,12 @@ class bloggerArchitecture:
                 Tool(
                     name = "idea_module",
                     func = self.idea_module,
-                    description="used in concluding an the idea for a blogpost. There should be no input"
+                    description="For concluding an the idea for a blogpost. There should be no input"
                 ),
                 Tool(
                     name = "research_module",
                     func = self.research_module,
-                    description="used in performing research for a blogpost topic. Input should be the blogpost topic"
+                    description="For performing research on a blogpost topic. Input is the blogpost topic"
                 )
             ]
 
@@ -52,15 +52,48 @@ class bloggerArchitecture:
                 tools=prior_module_toolkit,
                 llm=self.soul,
                 agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
-                # agent_kwargs={"prefix" :"Implement "},
                 verbose=True
             )
-            result = prior_module_agent.run(prior_module_subtask)
+            result = prior_module_agent.invoke({"input":prior_module_subtask})
 
             return result
 
         return prior_module
 
+    def define_executor_module(self):
+
+        def executor_module(input = ""):
+
+            executor_module_subtask = """
+            0. generate an outline using the outline_module
+            1. generate a blogpost using the writer_module
+            """
+
+            executor_module_toolkit = [
+                Tool(
+                    name = "outline_module",
+                    func = self.outline_module,
+                    description="For writing outline for blogposts. Input is the blogpost topic"
+                ),
+                Tool(
+                    name = "writer_module",
+                    func = self.writer_module,
+                    description="For writing blogposts. Input is the blogpost outline."
+                )
+            ]
+
+            executor_module_agent = initialize_agent(
+                tools=executor_module_toolkit,
+                llm=self.soul,
+                agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
+                verbose=True
+            )
+            result = executor_module_agent.run(executor_module_subtask)
+
+            return result
+
+
+        return executor_module
 
 
     def define_idea_module(self):
