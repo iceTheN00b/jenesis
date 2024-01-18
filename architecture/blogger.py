@@ -1,4 +1,3 @@
-
 from langchain.agents import initialize_agent, AgentType
 from langchain.agents import Tool
 from langchain.chains import LLMChain
@@ -14,9 +13,10 @@ class bloggerArchitecture:
         self.soul = soul
         self.memory = memory
 
-        self.notepad: dict = {}
-
-        self.layer_2_modules = []
+        self.NOTEPAD: dict = {}
+        self.BLOGPOST_TOPIC : str = ""
+        self.BLOGPOST_OUTLINE : str = ""
+        self.BLOGPOST_CONTENT : str = ""
 
         #layer 1
         self.prior_module = self.define_prior_module()
@@ -46,12 +46,12 @@ class bloggerArchitecture:
                 Tool(
                     name = "idea_module",
                     func = self.idea_module,
-                    description="For concluding an the idea for a blogpost. There should be no input"
+                    description="For concluding an the idea for a blogpost. Input should be NONE. Output is the BLOGPOST_TOPIC"
                 ),
                 Tool(
                     name = "research_module",
                     func = self.research_module,
-                    description="For performing research on a blogpost topic. Input is the blogpost topic"
+                    description="For performing research on a blogpost topic. Input is the BLOGPOST_TOPIC"
                 )
             ]
 
@@ -61,6 +61,7 @@ class bloggerArchitecture:
                 agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
                 verbose=True
             )
+
             result = prior_module_agent.invoke({"input":prior_module_subtask})
 
             return result
@@ -80,12 +81,12 @@ class bloggerArchitecture:
                 Tool(
                     name = "outline_module",
                     func = self.outline_module,
-                    description="For writing outline for blogposts. Input is the blogpost topic"
+                    description="For writing outline for blogposts. Input is NONE." #implicitly uses BLOGPOST_TOPIC and NOTEPAD
                 ),
                 Tool(
                     name = "writer_module",
-                    func = self.writer_module,#TODO: INSERT WRITER MODULE HERE
-                    description="For writing blogposts. Input is the blogpost outline."
+                    func = self.writer_module,
+                    description="For writing blogposts. Input is NONE."
                 )
             ]
 
@@ -137,6 +138,7 @@ class bloggerArchitecture:
         return publsher_module
 
 
+
     def define_idea_module(self):
 
         #TODO: change this to check for old ideas first, before coming up with a new one.
@@ -157,7 +159,8 @@ class bloggerArchitecture:
             self.render.set_task()
             chain = LLMChain(llm = self.soul, prompt = PromptTemplate.from_template("What is a compelling topic for {info} a blogpost on based on this info: " +self.search_results ))
             output = chain(info)
-            return output["text"]
+            self.BLOGPOST_TOPIC = output["text"]
+            return self.BLOGPOST_TOPIC
 
         idea_module_tools = [
 
@@ -199,13 +202,13 @@ class bloggerArchitecture:
 
         def querier_(topic =""):
             self.render.set_task()
-            chain = LLMChain(llm = self.soul, prompt = PromptTemplate.from_template("generate 3 queries to investigate {topic}."))
+            chain = LLMChain(llm = self.soul, prompt = PromptTemplate.from_template("{NONE} generate 3 queries to investigate the topic " + self.BLOGPOST_TOPIC))
             return chain.run(topic)
 
         def noter_(query = ""):
             self.render.set_task()
             result = GoogleSerperAPIWrapper().run(query)
-            self.notepad[query] = (result)
+            self.NOTEPAD[query] = (result)
             return f"!notes on {query} has been successfully taken"
 
         research_module_tools = [
@@ -213,7 +216,7 @@ class bloggerArchitecture:
             Tool(
                 name = "querier_",
                 func = querier_,
-                description= "Useful for when you need to investigate an idea by generating queries. Input ought to be the blogpost topic"
+                description= "Useful for when you need to investigate an idea by generating queries. Input is NONE."
             ),
 
             Tool(
@@ -244,16 +247,16 @@ class bloggerArchitecture:
 
         def planner_(topic = ""):
             self.render.set_task()
-            chain = LLMChain(llm = self.soul, prompt = PromptTemplate.from_template("precisely develop an outline for a blogpost based on {topic}")) #change this later to make use of information in notepad
+            chain = LLMChain(llm = self.soul, prompt = PromptTemplate.from_template("{NONE} precisely develop an outline for a blogpost based on " + self.BLOGPOST_TOPIC)) #change this later to make use of information in notepad
             result = chain.run(topic)
-
-            return result
+            self.BLOGPOST_OUTLINE = result
+            return self.BLOGPOST_OUTLINE
 
         outline_module_tools = [
             Tool(
                 name = "planner_",
                 func = planner_,
-                description="used to form an outline for a blogpost. Input ought to be the topic"
+                description="used to form an outline for a blogpost. Input ought to be NONE"
             )
         ]
 
@@ -278,21 +281,15 @@ class bloggerArchitecture:
         def writer_(outline = ""):
             self.render.set_task()
             chain = LLMChain(llm=self.soul, prompt=PromptTemplate.from_template(
-                "write a blogpost based following this outline {outline}"))
+                "write a blogpost on the topic "+ self.BLOGPOST_TOPIC + " based following this outline: \n" + self.BLOGPOST_OUTLINE))
             result = chain.run(outline)
-            blogpost = open("blogpost.txt","w")
-            blogpost.write(result)
+            self.BLOGPOST_CONTENT = result["text"]
 
-            return "the blogpost has been successfully written!"
+            return f"{self.BLOGPOST_TOPIC} has been successfully written!"
 
         def reviewer_(none = ""):
             self.render.set_task()
-            chain = LLMChain(llm = self.soul, prompt = PromptTemplate.from_template(
-                "{NONE} review this write up:\n " + open("blogpost.txt","r").read()
-            ))
-            result = chain.run("")
-
-            return "the blogpost has been successfully reviewed!"
+            pass
 
         writer_module_tools = [
             Tool(

@@ -38,11 +38,6 @@ class jenesisMind:  # the mind of the agent is nothing more than a collection of
                 name = "executor_module",
                 func = blogger.executor_module,
                 description="Input should be the topic"
-            ),
-            Tool(
-                name = "publsher_module",
-                func = blogger.publisher_module,
-                description="Input should be the name of the saved blogpost"
             )
         ]
 
