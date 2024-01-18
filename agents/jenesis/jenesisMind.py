@@ -30,19 +30,19 @@ class jenesisMind:  # the mind of the agent is nothing more than a collection of
 
         modules = [
             Tool(
-                name = "idea_module",
-                func = blogger.idea_module,
-                description="useful for coming up with a topic for a blogpost. Input ought to be your goal."
+                name = "prior_module",
+                func = blogger.prior_module,
+                description="Input should be your goal"
                 ),
             Tool(
-                name = "research_module",
-                func = blogger.research_module,
-                description="useful for when you need to research a blogpost topic. Input should be the topic"
+                name = "executor_module",
+                func = blogger.executor_module,
+                description="Input should be the topic"
             ),
             Tool(
-                name = "outline_module",
-                func = blogger.outline_module,
-                description="useful for when you need to write an outline AFTER researching the topic. Input ought to be the topic."
+                name = "publsher_module",
+                func = blogger.publisher_module,
+                description="Input should be the name of the saved blogpost"
             )
         ]
 
