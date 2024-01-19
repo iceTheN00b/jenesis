@@ -1,47 +1,36 @@
 print("..importing dependencies")
 import flask
 import json
-from agents.kandii.kandiiEngine import kandiiEngine
 from agents.jenesis.jenesisEngine import jenesisEngine
+from threading import Thread
+import logging
 
 E = flask.Flask("mobius")
+
+log = logging.getLogger('werkzeug')
+log.setLevel(logging.ERROR)
 
 print("..sculpting jenesis")
 jenesis = jenesisEngine()
 
-print("!running jenesis")
-jenesis.enginate()
-
-print("sculpting kandii..")
-kandii = kandiiEngine(False)
-
-
-
-@E.route("/kandii")
-
-def returnKandiiAgentRender():
-    action = flask.make_response()
-
-    kandiiState = json.load(open(kandii.RENDER_DATA, "r"))
-    action.headers["response"] = "true"
-    action.headers["location"] = kandiiState["location"]
-    action.headers["position"] = kandiiState["position"]
-    action.headers["task"] = kandiiState["task"]
-
-    return action
-
-
 @E.route("/jenesis")
 
 def returnJenesisAgentRender():
-    action = flask.make_response()
+    render_data = flask.make_response()
 
-    kandiiState = json.load(open(jenesis.RENDER_DATA, "r"))
-    action.headers["response"] = "true"
-    action.headers["location"] = kandiiState["location"]
-    action.headers["position"] = kandiiState["position"]
-    action.headers["task"] = kandiiState["task"]
+    jenesisState = json.load(open(jenesis.RENDER_DATA, "r"))
+    render_data.headers["response"] = "true"
+    render_data.headers["task"] = jenesisState["task"]
 
-    return action
+    return render_data
 
-#E.run(host="127.0.0.9",port=9999,debug=True)
+@E.route("/")
+
+def index():
+    return 0
+
+E.run(host="127.0.0.9",port=9999,debug=True)
+
+print("!running jenesis")
+thread = Thread(target = jenesis.enginate)
+thread.start()

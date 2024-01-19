@@ -1,4 +1,0 @@
-NAME: idea_chain
-INPUT: some bit of information from which to generate an idea from
-OUTPUT: an idea
-EXAMPLE: idea_chain("source information")

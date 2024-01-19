@@ -5,10 +5,10 @@ from langchain.utilities.google_serper import GoogleSerperAPIWrapper
 from langchain_core.prompts import PromptTemplate
 from architecture.Tasks import TASKS
 
-
 class bloggerArchitecture:
 
     def __init__(self, soul, memory, render):
+
         self.render = render
         self.soul = soul
         self.memory = memory
@@ -38,8 +38,8 @@ class bloggerArchitecture:
         def prior_module(input=""):
 
             prior_module_subtask = """
-            0. conclude an idea using the idea_module
-            1. perform research using the research_module
+            0. conclude an idea for blogpost topic using the idea_module
+            1. perform research for blogpost using the research_module
             """
 
             prior_module_toolkit = [
@@ -74,7 +74,7 @@ class bloggerArchitecture:
 
             executor_module_subtask = """
             0. generate an outline using the outline_module
-            1. generate a blogpost using the writer_module
+            1. generate a blogpost using the writer_module.
             """
 
             executor_module_toolkit = [
@@ -108,19 +108,13 @@ class bloggerArchitecture:
         def publsher_module(input = ""):
             publisher_module_subtask = """
             0. publish the written blogpost using the poster_module
-            1. update the list of written blogposts using librarian_module
             """
 
             publisher_module_toolkit = [
                 Tool(
-                    name = "poster_",
+                    name = "poster_module",
                     func = self.poster_module,
-                    description="input ought to be the name of where the blogpost is saved"
-                ),
-                Tool(
-                    name = "",
-                    func = "",
-                    description=""
+                    description="Input is NONE"
                 )
             ]
 
@@ -147,19 +141,21 @@ class bloggerArchitecture:
 
         subtask = PromptTemplate.from_template(template="""
         0. make use of search_ to look up the latest advances in tech
-        1. make use of compell_ to conclude what could be a compelling topic for a blogpost.
+        1. make use of compell_ to conclude what could be a compelling topic for a blogpost
         """)
 
         def search_(query =""):
-            self.render.set_task()
+            self.render.set_task(TASKS.SEARCH)
             self.search_results = GoogleSerperAPIWrapper(type = "news").run(query)
             return self.search_results
 
         def compell_(info =""):
-            self.render.set_task()
-            chain = LLMChain(llm = self.soul, prompt = PromptTemplate.from_template("What is a compelling topic for {info} a blogpost on based on this info: " +self.search_results ))
-            output = chain(info)
-            self.BLOGPOST_TOPIC = output["text"]
+            self.render.set_task(TASKS.WRITE)
+            chainA = LLMChain(llm = self.soul, prompt = PromptTemplate.from_template("Select one piece of news you will write a blogpost on: {search_results}" ))
+            outputA = chainA.run(self.search_results)
+            chainB = LLMChain(llm = self.soul, prompt = PromptTemplate.from_template("Define one compelling topic for a blogpost based upon this information: {information}" ))
+            outputB = chainB.run(outputA)
+            self.BLOGPOST_TOPIC = outputB
             return self.BLOGPOST_TOPIC
 
         idea_module_tools = [
@@ -196,17 +192,17 @@ class bloggerArchitecture:
         #TODO: generally, i think iterative loops are neccessary
 
         subtask = PromptTemplate.from_template(template="""
-        0. use querier to generate queries that can be used to investigate the topic 
-        1. use noter to search for information for each of these queries
+        0. use querier_ to generate queries that can be used to investigate the topic 
+        1. use noter_ to search for information for each of these queries
         """)
 
         def querier_(topic =""):
-            self.render.set_task()
+            self.render.set_task(TASKS.SEARCH)
             chain = LLMChain(llm = self.soul, prompt = PromptTemplate.from_template("{NONE} generate 3 queries to investigate the topic " + self.BLOGPOST_TOPIC))
             return chain.run(topic)
 
         def noter_(query = ""):
-            self.render.set_task()
+            self.render.set_task(TASKS.SEARCH)
             result = GoogleSerperAPIWrapper().run(query)
             self.NOTEPAD[query] = (result)
             return f"!notes on {query} has been successfully taken"
@@ -222,7 +218,7 @@ class bloggerArchitecture:
             Tool(
                 name = "noter_",
                 func = noter_,
-                description = "for when you need to research and then take notes of main facts and points. Input ought to query to search"
+                description = "for when you need to research. Input ought to query to search"
             )
         ]
 
@@ -246,7 +242,7 @@ class bloggerArchitecture:
         """)
 
         def planner_(topic = ""):
-            self.render.set_task()
+            self.render.set_task(TASKS.WRITE)
             chain = LLMChain(llm = self.soul, prompt = PromptTemplate.from_template("{NONE} precisely develop an outline for a blogpost based on " + self.BLOGPOST_TOPIC)) #change this later to make use of information in notepad
             result = chain.run(topic)
             self.BLOGPOST_OUTLINE = result
@@ -280,10 +276,11 @@ class bloggerArchitecture:
 
         def writer_(outline = ""):
             self.render.set_task()
-            chain = LLMChain(llm=self.soul, prompt=PromptTemplate.from_template(
-                "write a blogpost on the topic "+ self.BLOGPOST_TOPIC + " based following this outline: \n" + self.BLOGPOST_OUTLINE))
-            result = chain.run(outline)
-            self.BLOGPOST_CONTENT = result["text"]
+            chain = LLMChain(llm=self.soul, prompt=PromptTemplate.from_template("{NONE} write a blogpost on the topic "+ self.BLOGPOST_TOPIC + " based following this outline: \n" + self.BLOGPOST_OUTLINE + "using this information \n" + str(self.NOTEPAD.values())))
+            self.BLOGPOST_CONTENT = chain.run(outline)
+            with  open(f"data/output/jenesis/{self.BLOGPOST_TOPIC}", "w") as blogpost:
+                blogpost.write(self.BLOGPOST_CONTENT)
+
 
             return f"{self.BLOGPOST_TOPIC} has been successfully written!"
 
@@ -295,12 +292,7 @@ class bloggerArchitecture:
             Tool(
                 name = "writer_",
                 func = writer_,
-                description="Input should be the outline"
-            ),
-            Tool(
-                name = "reviewer_",
-                func = reviewer_,
-                description = "Input should be NONE"
+                description="For writing a blogpost. Input should be NONE"
             )
         ]
 
@@ -322,25 +314,29 @@ class bloggerArchitecture:
         """)
 
         #add the blogpost to the blog
-        def uploader_(filename = ""):
+        def uploader_(input = ""):
             self.render.set_task()
-            pass
+            with  open(f"data/output/jenesis/" + self.BLOGPOST_TOPIC + ".txt", "w") as blogpost:
+                blogpost.write(self.BLOGPOST_CONTENT)
+
+            return f"the blogpost {self.BLOGPOST_TOPIC} has been sucesfully uploaded!"
 
         #tell everybody else that a new blogpost has been appended to the website
         def updater_(input = ""):
             self.render.set_task()
-            pass
+            return f"all agents on the network have now been updated that jenesis has written and published a blogpost titled {self.BLOGPOST_TOPIC}"
+
 
         poster_module_tools = [
             Tool(
                 name = "uploader_",
                 func = uploader_,
-                description = "Input should be the filename"
+                description = "For uploading a written blogpost online. Input should be NONE"
             ),
             Tool(
                 name = "updater_",
                 func = updater_,
-                description="There should be no input"
+                description="For alterting the network of a written blogpost. Input should be NONE"
             )
         ]
 
@@ -352,3 +348,5 @@ class bloggerArchitecture:
                 verbose=True
             )
             return poster_module_agent.invoke({"input":poster_module_subtask})
+
+        return poster_module

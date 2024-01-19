@@ -1,6 +1,6 @@
 from langchain.globals import set_llm_cache
 from langchain_community.cache import SQLiteCache
-from langchain_community.chat_models import ChatOpenAI
+from langchain_openai import ChatOpenAI
 from agents.jenesis.jenesisRender import jenesisRender
 from agents.jenesis.jenesisMind import jenesisMind
 from langchain.agents import initialize_agent, AgentType
@@ -38,9 +38,9 @@ class jenesisEngine:
     def enginate(self):
 
         engine_subtask = """
-        0. make use of the prior_module
-        1. make use of the executor_module
-        2. make use of the publisher_module
+        0. make use of the prior_module to begin the blogpost development 
+        1. make use of the executor_module to continue the blogpost development
+        2. make use of the publisher_module to finalize the blogpost development
         """
 
         self.agent.invoke({"input":engine_subtask})

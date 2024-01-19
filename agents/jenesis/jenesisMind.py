@@ -1,7 +1,7 @@
-from langchain.document_loaders import DirectoryLoader, TextLoader
-from langchain.embeddings import HuggingFaceEmbeddings
+from langchain_community.document_loaders import TextLoader, DirectoryLoader
+from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.vectorstores import Chroma
+from langchain_community.vectorstores import Chroma
 from langchain.agents import Tool
 
 from architecture.blogger import bloggerArchitecture
@@ -11,7 +11,6 @@ class jenesisMind:  # the mind of the agent is nothing more than a collection of
         self.soul = soul
         self.memory = self.define_memory()
         self.render = render
-        self.action_space = open("data/constant/space.txt", "r").read()
         self.modules = self.define_modules()
 
     def define_memory(self):
@@ -19,8 +18,7 @@ class jenesisMind:  # the mind of the agent is nothing more than a collection of
         docs = loader.load()
         splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
         chunks = splitter.split_documents(docs)
-        embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2",
-                                           model_kwargs={"device": "cpu"})
+        embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2", model_kwargs={"device": "cpu"})
         return Chroma.from_documents(chunks, embeddings)
 
 
@@ -28,17 +26,24 @@ class jenesisMind:  # the mind of the agent is nothing more than a collection of
 
         blogger = bloggerArchitecture(self.soul, self.memory, self.render)
 
+        #ALL INPUTS ARE IMPLICITLY STATED - FAR MORE DEPENDABLE
         modules = [
             Tool(
                 name = "prior_module",
                 func = blogger.prior_module,
-                description="Input should be your goal"
+                description="Begin blogpost development. Input should be NONE"
                 ),
             Tool(
                 name = "executor_module",
                 func = blogger.executor_module,
-                description="Input should be the topic"
+                description="Continue blogpost development. Input should be NONE"
+            ),
+            Tool(
+                name = "publisher_module",
+                func = blogger.publisher_module,
+                description="Finalize blogpost development. Input should be NONE"
             )
+
         ]
 
         return modules

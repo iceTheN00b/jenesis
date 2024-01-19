@@ -1,5 +1,3 @@
 {
-  "location": "den",
-  "position": "origin",
-  "task": "idle"
+  "task": "IDLE"
 }
