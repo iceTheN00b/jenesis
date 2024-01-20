@@ -145,12 +145,12 @@ class bloggerArchitecture:
         """)
 
         def search_(query =""):
-            self.render.set_task(TASKS.SEARCH)
+            self.render.set_task(TASKS().SEARCH)
             self.search_results = GoogleSerperAPIWrapper(type = "news").run(query)
             return self.search_results
 
         def compell_(info =""):
-            self.render.set_task(TASKS.WRITE)
+            self.render.set_task(TASKS().WRITE)
             chainA = LLMChain(llm = self.soul, prompt = PromptTemplate.from_template("Select one piece of news you will write a blogpost on: {search_results}" ))
             outputA = chainA.run(self.search_results)
             chainB = LLMChain(llm = self.soul, prompt = PromptTemplate.from_template("Define one compelling topic for a blogpost based upon this information: {information}" ))
@@ -197,14 +197,14 @@ class bloggerArchitecture:
         """)
 
         def querier_(topic =""):
-            self.render.set_task(TASKS.SEARCH)
+            self.render.set_task(TASKS().SEARCH)
             chain = LLMChain(llm = self.soul, prompt = PromptTemplate.from_template("{NONE} generate 3 queries to investigate the topic " + self.BLOGPOST_TOPIC))
             return chain.run(topic)
 
         def noter_(query = ""):
-            self.render.set_task(TASKS.SEARCH)
+            self.render.set_task(TASKS().SEARCH)
             result = GoogleSerperAPIWrapper().run(query)
-            self.NOTEPAD[query] = (result)
+            self.NOTEPAD[query] = result
             return f"!notes on {query} has been successfully taken"
 
         research_module_tools = [
@@ -242,7 +242,7 @@ class bloggerArchitecture:
         """)
 
         def planner_(topic = ""):
-            self.render.set_task(TASKS.WRITE)
+            self.render.set_task(TASKS().WRITE)
             chain = LLMChain(llm = self.soul, prompt = PromptTemplate.from_template("{NONE} precisely develop an outline for a blogpost based on " + self.BLOGPOST_TOPIC)) #change this later to make use of information in notepad
             result = chain.run(topic)
             self.BLOGPOST_OUTLINE = result
@@ -275,7 +275,7 @@ class bloggerArchitecture:
         #    1. review the written blogpost using reviewer_
 
         def writer_(outline = ""):
-            self.render.set_task()
+            self.render.set_task(TASKS().WRITE)
             chain = LLMChain(llm=self.soul, prompt=PromptTemplate.from_template("{NONE} write a blogpost on the topic "+ self.BLOGPOST_TOPIC + " based following this outline: \n" + self.BLOGPOST_OUTLINE + "using this information \n" + str(self.NOTEPAD.values())))
             self.BLOGPOST_CONTENT = chain.run(outline)
             with  open(f"data/output/jenesis/{self.BLOGPOST_TOPIC}", "w") as blogpost:
@@ -315,15 +315,15 @@ class bloggerArchitecture:
 
         #add the blogpost to the blog
         def uploader_(input = ""):
-            self.render.set_task()
+            self.render.set_task(TASKS().UPLOAD)
             with  open(f"data/output/jenesis/" + self.BLOGPOST_TOPIC + ".txt", "w") as blogpost:
                 blogpost.write(self.BLOGPOST_CONTENT)
-
+                blogpost.close()
             return f"the blogpost {self.BLOGPOST_TOPIC} has been sucesfully uploaded!"
 
         #tell everybody else that a new blogpost has been appended to the website
         def updater_(input = ""):
-            self.render.set_task()
+            self.render.set_task(TASKS().UPDATE)
             return f"all agents on the network have now been updated that jenesis has written and published a blogpost titled {self.BLOGPOST_TOPIC}"
 
 

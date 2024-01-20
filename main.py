@@ -24,13 +24,8 @@ def returnJenesisAgentRender():
 
     return render_data
 
-@E.route("/")
+#E.run(host="127.0.0.9",port=9999,debug=False)
 
-def index():
-    return 0
-
-E.run(host="127.0.0.9",port=9999,debug=True)
 
 print("!running jenesis")
-thread = Thread(target = jenesis.enginate)
-thread.start()
+jenesis.enginate()

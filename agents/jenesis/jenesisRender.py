@@ -6,19 +6,13 @@ import json
 class jenesisRender:
     def __init__(self):
         self.task = "IDLE"
-        self.DATA = "renderData/jenesis.json"
-        self.last_save = ""
-
-    def setup(self):
-        dat = json.load(open(self.DATA,"r"))
-        self.location = dat["location"]
-        self.task = dat["task"]
+        self.DATA = "data/renderData/jenesis.json"
 
     def set_task(self, task = "IDLE"):
         self.task = task
         with open(self.DATA, "w") as render_data:
-            render_data.write(json.dumps(self.task,indent=2))
-        print(f"RENDER: " + self.task)
+            render_data.write(json.dumps({"task":f"{self.task}"},indent=2))
+        print(f"RENDER: {task}")
 
 
 
