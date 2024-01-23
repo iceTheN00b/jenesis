@@ -5,18 +5,18 @@ import requests
 #more common place were llm based agents turned towards consumers
 
 class jenesisRender:
+
     def __init__(self):
-        self.task = "IDLE"
-        #self.DATA = "https://mobius.pythonanywhere.com/jenesis/render"
-        self.DATA = "https://127.0.0.1/jenesis/render"
+        #self.RENDER_LOC = "https://mobius.pythonanywhere.com/jenesis/render"
+        self.RENDER_LOC = "https://127.0.0.1/jenesis/render"
 
     def set_task(self, task = "IDLE"):
-        self.task = task
         render_data = {
-            "task":self.task
+            "task": task
         }
+
         try:
-            requests.get(self.DATA, render_data)
+            requests.post(self.RENDER_LOC, headers = render_data)
         except:
             print("unable to publish render data to central server")
 
