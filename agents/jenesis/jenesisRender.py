@@ -1,13 +1,9 @@
 import json
 import requests
 
-#this class is neccessary in order to have the agent's behaviour be visualizable for any rendering application, a feature i think will become
-#more common place were llm based agents turned towards consumers
-
 class jenesisRender:
 
     def __init__(self):
-        #self.RENDER_LOC = "https://mobius.pythonanywhere.com/jenesis/render"
         self.RENDER_LOC = "http://127.0.0.1:10000/jenesis/render"
 
     def set_task(self, task = "IDLE"):
