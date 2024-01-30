@@ -1,4 +1,4 @@
-# Project Mobius
+# jenesis ( of the mobius network )
 
 ## Description
 
